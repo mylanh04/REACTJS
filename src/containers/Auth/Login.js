@@ -8,6 +8,7 @@ import * as actions from "../../store/actions";
 import "./Login.scss";
 import { FormattedMessage } from "react-intl";
 import { handleLoginApi } from "../../services/userService";
+import { userLoginSuccess } from "../../store/actions";
 
 class Login extends Component {
   constructor(props) {
@@ -16,6 +17,7 @@ class Login extends Component {
       username: "",
       password: "",
       isShowPassword: false,
+      errMessage: "",
     };
   }
 
@@ -30,18 +32,28 @@ class Login extends Component {
     });
   };
   handleLogin = async () => {
-    console.log(
-      "username: ",
-      this.state.username,
-      "password: ",
-      this.state.password
-    );
-
-    console.log("all state ", this.state);
+    this.setState({
+      errMessage: "",
+    });
     try {
-      await handleLoginApi(this.state.username, this.state.password);
-    } catch (e) {
-      console.log(e);
+      let data = await handleLoginApi(this.state.username, this.state.password);
+      if (data && data.errCode !== 0) {
+        this.setState({
+          errMessage: data.message,
+        });
+      }
+      if (data && data.errCode === 0) {
+        this.props.userLoginSuccess(data.user);
+        console.log("login succeeds");
+      }
+    } catch (error) {
+      if (error.response) {
+        if (error.response.data) {
+          this.setState({
+            errMessage: error.response.data.message,
+          });
+        }
+      }
     }
   };
   handleShowHidePassword = () => {
@@ -68,7 +80,7 @@ class Login extends Component {
               />
             </div>
             <div className="col-12 form-group login-input">
-              <lable>Password:</lable>
+              <span>Password:</span>
               <div className="custom-input-password">
                 <input
                   className="form-control"
@@ -87,6 +99,9 @@ class Login extends Component {
             </div>
 
             <div className="col-12">
+              <div className="col-12" style={{ color: "red" }}>
+                {this.state.errMessage}
+              </div>
               <button
                 className="btn-login"
                 onClick={() => {
@@ -104,8 +119,8 @@ class Login extends Component {
               <span className="text-other-login">Or login with:</span>
             </div>
             <div className="col-12 social-login">
-              <i class="fab fa-google-plus-g google"></i>
-              <i class="fab fa-facebook-f facebook"></i>
+              <i className="fab fa-google-plus-g google"></i>
+              <i className="fab fa-facebook-f facebook"></i>
             </div>
           </div>
         </div>
@@ -123,9 +138,11 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     navigate: (path) => dispatch(push(path)),
-    adminLoginSuccess: (adminInfo) =>
-      dispatch(actions.adminLoginSuccess(adminInfo)),
-    adminLoginFail: () => dispatch(actions.adminLoginFail()),
+    // userLoginSuccess: (adminInfo) =>
+    //   dispatch(actions.adminLoginSuccess(adminInfo)),
+
+    userLoginSuccess: (userInfor) =>
+      dispatch(actions.userLoginSuccess(userInfor)),
   };
 };
 
