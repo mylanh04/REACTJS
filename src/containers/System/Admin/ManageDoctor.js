@@ -81,7 +81,8 @@ class ManageDoctor extends Component {
 
   handleChange = (selectedOption) => {
     this.setState({ selectedOption });
-    //   console.log(`Option selected:`, this.state.selectedOption)
+    // console.log(`Option selected:`, selectedOption);
+    console.log("lanh check:");
   };
 
   handleOnchangeDesc = (event) => {
